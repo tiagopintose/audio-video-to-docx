@@ -4,3 +4,4 @@ python-docx
 whisper
 torch
 ffmpeg-python
+gunicorn==21.2.0

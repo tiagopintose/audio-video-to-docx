@@ -2,7 +2,9 @@
 FROM python:3.11-slim
 
 # Evitar prompts de instalação
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # Atualiza e instala dependências de sistema
 RUN apt-get update && \
@@ -19,11 +21,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia todo o código
 COPY . .
 
-# Cria pasta media
-RUN mkdir -p /app/media
+# Cria pastas necessárias
+RUN mkdir -p /app/media /app/static
+
+# Dá permissões apropriadas
+RUN chmod -R 755 /app
 
 # Expõe porta 8000
 EXPOSE 8000
 
-# Comando para iniciar o Django
-CMD ["gunicorn", "transcritor_site.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Comando para iniciar o Gunicorn
+CMD ["gunicorn", "transcritor_site.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]

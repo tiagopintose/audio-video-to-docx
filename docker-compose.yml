@@ -4,10 +4,12 @@ services:
   web:
     build: .
     container_name: transcritor_web
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn transcritor_site.wsgi:application --bind 0.0.0.0:8000"
     ports:
       - "8000:8000"
     volumes:
       - ./media:/app/media
+      - ./static:/app/static
     environment:
       - DEBUG=0
     restart: unless-stopped
