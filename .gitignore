@@ -38,5 +38,6 @@ media/
 # Misc
 .DS_Store
 .env
+.env.example
 *.swp
 *.swo

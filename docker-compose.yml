@@ -18,7 +18,7 @@ services:
     image: nginx:alpine
     container_name: transcritor_nginx
     ports:
-      - "80:80"
+      - "9797:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./media:/app/media
