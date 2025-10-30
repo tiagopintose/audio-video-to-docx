@@ -1,5 +1,7 @@
 from django.apps import AppConfig
-import whisper
+from django.conf import settings
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 class TranscritorConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -9,6 +11,7 @@ class TranscritorConfig(AppConfig):
         """
         Carrega o modelo Whisper uma única vez no arranque da app.
         """
+        import whisper
         from . import utils
 
         print("🔊 A carregar o modelo Whisper (large)... isto pode demorar um pouco.")
