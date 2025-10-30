@@ -8,8 +8,19 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Atualiza e instala dependências de sistema
 RUN apt-get update && \
-    apt-get install -y ffmpeg git build-essential && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y \
+    ffmpeg \
+    git \
+    build-essential \
+    python3-dev \
+    python3-numpy \
+    python3-pip \
+    python3-imaging \
+    python3-pygame \
+    python3-matplotlib \
+    imagemagick \
+    libmagick++-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Define diretório de trabalho
 WORKDIR /app
