@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: transcritor_web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./media:/app/media
+    environment:
+      - DEBUG=0
+    restart: unless-stopped
