@@ -12,14 +12,8 @@ RUN apt-get update && \
     ffmpeg \
     git \
     build-essential \
-    python3-dev \
-    python3-numpy \
-    python3-pip \
-    python3-imaging \
-    python3-pygame \
-    python3-matplotlib \
-    imagemagick \
-    libmagick++-dev \
+    pkg-config \
+    libcairo2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Define diretório de trabalho
