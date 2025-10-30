@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Transcritor de Áudio e Vídeo</title>
+    <style>
+        body {
+            font-family: "Inter", Arial, sans-serif;
+            background: linear-gradient(135deg, #eef2f3, #d9e2ec);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            color: #2b4c7e;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #90a4ae;
+            border-radius: 10px;
+            background-color: #f7f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #2b4c7e;
+            background-color: #f0f4f8;
+        }
+
+        button {
+            margin-top: 20px;
+            background-color: #2b4c7e;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1e355a;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .message.success {
+            background-color: #dff0d8;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .message.error {
+            background-color: #fbe9e7;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        .loading {
+            margin-top: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            color: #2b4c7e;
+        }
+
+        .spinner {
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid #2b4c7e;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .file-list {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .file-list h2 {
+            font-size: 1.1rem;
+            color: #2b4c7e;
+            margin-bottom: 8px;
+        }
+
+        .file-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-list li {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+
+        .file-list a {
+            color: #2b4c7e;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .file-list a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <script>
+        function mostrarLoading() {
+            document.querySelector(".loading").style.display = "flex";
+        }
+    </script>
+</head>
+<body>
+    <div class="card">
+        <h1>🎧 Transcritor</h1>
+        <form id="uploadForm" method="POST" enctype="multipart/form-data" onsubmit="return false;">
+            {% csrf_token %}
+            <p>Selecione o arquivo (áudio ou vídeo):</p>
+            <input id="fileInput" type="file" name="file" required>
+            <button id="submitBtn" type="button">Enviar e Transcrever</button>
+        </form>
+
+        <div class="loading" id="loadingBox" style="display:none;">
+            <p id="loadingText">Processando... isto pode demorar alguns minutos ⏳</p>
+
+            <!-- barra de progresso -->
+            <div style="width:100%; max-width:420px; margin-top:12px;">
+                <div style="background:#e6eef6; border-radius:8px; overflow:hidden; height:14px;">
+                    <div id="progressBar" style="height:14px; width:0%; background:#2b4c7e; transition:width 0.5s;"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-top:6px;">
+                    <span id="progressLabel">0%</span>
+                    <span id="progressMsg"></span>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            (function(){
+                const form = document.getElementById("uploadForm");
+                const fileInput = document.getElementById("fileInput");
+                const submitBtn = document.getElementById("submitBtn");
+                const loadingBox = document.getElementById("loadingBox");
+                const progressBar = document.getElementById("progressBar");
+                const progressLabel = document.getElementById("progressLabel");
+                const progressMsg = document.getElementById("progressMsg");
+
+                function setProgress(p, msg){
+                    progressBar.style.width = p + "%";
+                    progressLabel.textContent = p + "%";
+                    progressMsg.textContent = msg || "";
+                }
+
+                function pollStatus(jobId){
+                    const url = "{% url 'job_status' 'JOBID' %}".replace('JOBID', jobId);
+                    const poll = setInterval(async () => {
+                        try {
+                            const res = await fetch(url);
+                            if (!res.ok) throw new Error("Estado não disponível");
+                            const data = await res.json();
+                            setProgress(data.percent || 0, data.message || "");
+                            if (data.status === "done" || data.status === "error"){
+                                clearInterval(poll);
+                                // forçar refresh da lista de ficheiros depois de concluído
+                                setTimeout(() => location.reload(), 800);
+                            }
+                        } catch (e) {
+                            clearInterval(poll);
+                            progressMsg.textContent = "Erro ao obter estado";
+                        }
+                    }, 1500);
+                }
+
+                submitBtn.addEventListener("click", () => {
+                    if (!fileInput.files.length) return alert("Escolhe um ficheiro.");
+                    const file = fileInput.files[0];
+                    const xhr = new XMLHttpRequest();
+                    const url = "{% url 'start_transcribe' %}";
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    // adicionar csrf token header
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                    xhr.open("POST", url, true);
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                    xhr.upload.addEventListener("progress", (e) => {
+                        if (e.lengthComputable){
+                            const pct = Math.round((e.loaded / e.total) * 100);
+                            loadingBox.style.display = "block";
+                            setProgress(Math.round(pct * 0.6), "A enviar..."); // usa até 60% para upload
+                        }
+                    });
+
+                    xhr.onreadystatechange = function(){
+                        if (xhr.readyState === 4){
+                            if (xhr.status === 200){
+                                const resp = JSON.parse(xhr.responseText);
+                                const jobId = resp.job_id;
+                                // começa polling do estado; progress simulated continuará até 100%
+                                setProgress(60, "A iniciar processamento...");
+                                pollStatus(jobId);
+                            } else {
+                                try {
+                                    const err = JSON.parse(xhr.responseText);
+                                    alert(err.error || "Erro ao iniciar transcrição");
+                                } catch(e){
+                                    alert("Erro ao iniciar transcrição");
+                                }
+                                loadingBox.style.display = "none";
+                            }
+                        }
+                    };
+
+                    loadingBox.style.display = "block";
+                    setProgress(2, "A carregar...");
+                    xhr.send(formData);
+                });
+            })();
+        </script>
+
+        {% if message %}
+            <div class="message {% if 'Erro' in message or '❌' in message %}error{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+        {% endif %}
+
+        {% if ficheiros %}
+        <div class="file-list">
+            <h2>📂 Ficheiros Disponíveis para Download:</h2>
+            <ul>
+                {% for f in ficheiros %}
+                    <li>
+                        <span>{{ f.nome }} <small>({{ f.tamanho }})</small></span>
+                        <a href="{{ MEDIA_URL }}{{ f.nome }}" download="{{ f.nome }}">Download</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
