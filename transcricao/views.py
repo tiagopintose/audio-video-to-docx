@@ -162,3 +162,23 @@ def job_status(request, job_id):
     except Exception as e:
         return JsonResponse({"error": "Erro a ler estado", "detail": str(e)}, status=500)
     return JsonResponse(data)
+
+def delete_file(request, filename):
+    """Delete a file from MEDIA_ROOT."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Método não permitido"}, status=405)
+
+    try:
+        # Garantir que o arquivo existe e está em MEDIA_ROOT
+        file_path = os.path.join(settings.MEDIA_ROOT, filename)
+        if not os.path.exists(file_path) or not os.path.isfile(file_path):
+            return JsonResponse({"error": "Arquivo não encontrado"}, status=404)
+        
+        # Verificar se o arquivo está dentro de MEDIA_ROOT (segurança)
+        if not os.path.abspath(file_path).startswith(os.path.abspath(settings.MEDIA_ROOT)):
+            return JsonResponse({"error": "Acesso negado"}, status=403)
+        
+        os.remove(file_path)
+        return JsonResponse({"message": "Arquivo apagado com sucesso"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

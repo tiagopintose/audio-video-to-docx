@@ -155,9 +155,65 @@
         .file-list a:hover {
             text-decoration: underline;
         }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-download, .btn-delete {
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-download {
+            background-color: #2b4c7e;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+
+        .btn-download:hover {
+            background-color: #1e355a;
+            text-decoration: none;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
     </style>
 
     <script>
+        function deleteFile(filename) {
+            if (confirm(`Tem certeza que deseja apagar ${filename}?`)) {
+                fetch(`/delete/${filename}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Erro ao apagar o arquivo');
+                    }
+                })
+                .catch(() => alert('Erro ao apagar o arquivo'));
+            }
+        }
+
         function mostrarLoading() {
             document.querySelector(".loading").style.display = "flex";
         }
@@ -285,7 +341,10 @@
                 {% for f in ficheiros %}
                     <li>
                         <span>{{ f.nome }} <small>({{ f.tamanho }})</small></span>
-                        <a href="{{ MEDIA_URL }}{{ f.nome }}" download="{{ f.nome }}">Download</a>
+                        <div class="file-actions">
+                            <a href="{{ MEDIA_URL }}{{ f.nome }}" class="btn-download" download>📥 Download</a>
+                            <button onclick="deleteFile('{{ f.nome }}')" class="btn-delete">🗑️ Apagar</button>
+                        </div>
                     </li>
                 {% endfor %}
             </ul>
