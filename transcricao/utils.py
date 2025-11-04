@@ -31,16 +31,25 @@ def transcrever_audio(caminho_audio: str) -> str:
     guarda o resultado em 'MEDIA_ROOT/transcricao.docx'.
     """
     global MODEL
-    if MODEL is None:
-        raise RuntimeError("O modelo Whisper ainda não foi carregado. Verifica o __init__.py da app.")
-
-    # 🔹 Converter o áudio/vídeo para WAV 16 kHz mono
-    caminho_wav = _converter_para_wav(caminho_audio)
-
     try:
-        # 🔹 Transcrever com o modelo pré-carregado (máxima precisão)
+        # 🔹 Carregar modelo apenas quando necessário
+        if MODEL is None:
+            print("🔊 A carregar o modelo Whisper (large)... isto pode demorar um pouco.")
+            MODEL = whisper.load_model("large", device=MODEL_DEVICE)
+            print("✅ Modelo Whisper carregado com sucesso!")
+
+        # 🔹 Converter o áudio/vídeo para WAV 16 kHz mono
+        caminho_wav = _converter_para_wav(caminho_audio)
+
+        # 🔹 Transcrever com o modelo (máxima precisão)
         resultado = MODEL.transcribe(caminho_wav, language="portuguese")
         transcricao = resultado["text"].strip()
+
+        # 🔹 Liberar memória após transcrição
+        global MODEL
+        MODEL = None
+        gc.collect()  # força garbage collection
+        print("🧹 Memória liberada")
 
         # 🔹 Caminho final do ficheiro DOCX
         arquivo_transcricao = os.path.join(settings.MEDIA_ROOT, "transcricao.docx")
