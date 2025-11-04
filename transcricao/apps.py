@@ -9,11 +9,6 @@ class TranscritorConfig(AppConfig):
 
     def ready(self):
         """
-        Carrega o modelo Whisper uma única vez no arranque da app.
+        Inicializa a app
         """
-        import whisper
-        from . import utils
-
-        print("🔊 A carregar o modelo Whisper (large)... isto pode demorar um pouco.")
-        utils.MODEL = whisper.load_model("large", device="cpu")
-        print("✅ Modelo Whisper carregado e pronto!")
+        from . import utils  # importa utils para registrar as variáveis globais

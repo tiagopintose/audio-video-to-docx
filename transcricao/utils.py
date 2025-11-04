@@ -4,8 +4,9 @@ import tempfile
 from docx import Document
 from django.conf import settings
 
-# 🔹 Será definido pelo __init__.py no arranque
+# Variáveis globais
 MODEL = None
+MODEL_DEVICE = os.getenv('MODEL_DEVICE', 'cpu')
 
 
 def _converter_para_wav(caminho_entrada: str) -> str:
@@ -46,7 +47,6 @@ def transcrever_audio(caminho_audio: str) -> str:
         transcricao = resultado["text"].strip()
 
         # 🔹 Liberar memória após transcrição
-        global MODEL
         MODEL = None
         gc.collect()  # força garbage collection
         print("🧹 Memória liberada")
