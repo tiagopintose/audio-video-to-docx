@@ -2,6 +2,7 @@ import os
 import whisper
 from django.conf import settings
 
-# Carrega o modelo apenas uma vez no início da aplicação
+print("🔊 A carregar o modelo Whisper (large)... isto pode demorar um pouco.")
 MODEL_DEVICE = os.getenv('MODEL_DEVICE', 'cpu')
-MODEL = whisper.load_model("medium", device=MODEL_DEVICE)
+MODEL = whisper.load_model("large", device=MODEL_DEVICE)
+print("✅ Modelo Whisper carregado com sucesso!")
