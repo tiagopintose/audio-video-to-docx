@@ -114,21 +114,22 @@ def start_transcribe(request):
             else:
                 work_path = input_path
 
-            # chama a função de transcrição (bloqueante)
-            trans_msg = transcrever_audio(work_path)  # função existente
-            # após transcrição, verifica se transcricao.docx foi criado em MEDIA_ROOT e renomeia para único
-            original_name = "transcricao.docx"
-            original_path = os.path.join(settings.MEDIA_ROOT, original_name)
-            result_name = None
-            if os.path.exists(original_path):
-                ts = datetime.datetime.now().strftime("%Y%m%dT%H%M")
-                result_name = f"transcricao_{ts}.docx"
-                result_path = os.path.join(settings.MEDIA_ROOT, result_name)
-                os.replace(original_path, result_path)
-                _write_progress(job_path, {"status": "done", "percent": 100, "message": trans_msg or "Concluído", "filename": result_name})
-            else:
-                # nenhum ficheiro escrito; grava mensagem de erro parcial
-                _write_progress(job_path, {"status": "done", "percent": 100, "message": trans_msg or "Concluído (sem ficheiro gerado)", "filename": None})
+                    # chama a função de transcrição (bloqueante)
+            try:
+                trans_msg = transcrever_audio(work_path)
+                _write_progress(job_path, {
+                    "status": "done",
+                    "percent": 100,
+                    "message": "✅ Transcrição concluída com sucesso!",
+                    "filename": os.path.basename(arquivo_transcricao)
+                })
+            except Exception as e:
+                _write_progress(job_path, {
+                    "status": "error",
+                    "percent": 100,
+                    "message": f"❌ Erro na transcrição: {str(e)}",
+                    "filename": None
+                })
         except Exception as e:
             _write_progress(job_path, {"status": "error", "percent": 100, "message": str(e), "filename": None})
         finally:

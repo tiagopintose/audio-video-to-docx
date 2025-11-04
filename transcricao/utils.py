@@ -1,8 +1,11 @@
 import os
 import subprocess
 import tempfile
+import gc
+import whisper
 from docx import Document
 from django.conf import settings
+from datetime import datetime
 
 # Variáveis globais
 MODEL = None
@@ -51,19 +54,26 @@ def transcrever_audio(caminho_audio: str) -> str:
         gc.collect()  # força garbage collection
         print("🧹 Memória liberada")
 
-        # 🔹 Caminho final do ficheiro DOCX
-        arquivo_transcricao = os.path.join(settings.MEDIA_ROOT, "transcricao.docx")
+        # 🔹 Garantir que MEDIA_ROOT existe
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+        
+        # 🔹 Gerar nome único para o arquivo
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        arquivo_transcricao = os.path.join(settings.MEDIA_ROOT, f"transcricao_{timestamp}.docx")
 
-        # 🔹 Criar ou abrir o DOCX existente
-        if not os.path.exists(arquivo_transcricao):
-            doc = Document()
-            doc.add_heading("Transcrições", level=1)
-            doc.save(arquivo_transcricao)
-
-        doc = Document(arquivo_transcricao)
-        doc.add_heading("Nova Transcrição", level=2)
+        # 🔹 Criar novo documento DOCX
+        doc = Document()
+        doc.add_heading("Transcrição de Áudio/Vídeo", level=1)
+        doc.add_heading(f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", level=2)
         doc.add_paragraph(transcricao)
-        doc.save(arquivo_transcricao)
+        
+        # 🔹 Salvar documento
+        try:
+            doc.save(arquivo_transcricao)
+            print(f"✅ Arquivo salvo em: {arquivo_transcricao}")
+        except Exception as e:
+            print(f"❌ Erro ao salvar arquivo: {e}")
+            raise
 
         return "✅ Transcrição concluída com sucesso!"
     except Exception as e:

@@ -134,12 +134,13 @@
         }
 
         .file-list li {
-            padding: 10px 14px;
+            padding: 6px 12px;
             border-bottom: 1px solid #e0e0e0;
-            font-size: 0.95rem;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px; /* separação controlada entre nome e ações */
+            transition: background-color 0.2s ease;
+            min-height: 40px;
         }
 
         .file-list li:last-child {
@@ -156,63 +157,245 @@
             text-decoration: underline;
         }
 
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
         .file-actions {
             display: flex;
-            gap: 10px;
-            align-items: center;
+            flex-direction: row;
+            gap: 8px;
+            margin-left: auto;       /* empurra o grupo de ações para a direita */
+            align-items: center;     /* centra verticalmente os botões */
+            justify-content: flex-end;
+            flex-shrink: 0;          /* evita que o container encolha de forma inesperada */
+        }
+
+        /* garante que cada botão não congele/expanda dentro do grupo */
+        .file-actions > * {
+            flex-shrink: 0;
         }
 
         .btn-download, .btn-delete {
-            padding: 6px 12px;
-            border-radius: 4px;
+            position: relative;
+            width: 28px;
+            height: 28px;
+            padding: 0;
             cursor: pointer;
             font-size: 0.9rem;
             text-decoration: none;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            transition: all 0.2s ease;
+            justify-content: center;
+            border: none;
+            background: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .btn-download:hover, .btn-delete:hover {
+            opacity: 1;
         }
 
         .btn-download {
-            background-color: #2b4c7e;
-            color: white;
+            color: #2196F3;
         }
 
         .btn-delete {
-            background-color: #dc3545;
-            color: white;
-            border: none;
+            color: #F44336;
         }
 
-        .btn-download:hover {
-            background-color: #1e355a;
+        .btn-download {
+            background-color: #e3f2fd;
+            color: #1976D2;
+        }
+
+        .btn-delete {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+
+        .btn-download:hover, .btn-delete:hover {
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            transform: translateY(-1px);
             text-decoration: none;
         }
 
-        .btn-delete:hover {
-            background-color: #c82333;
+        .btn-download:active, .btn-delete:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        .btn-download::after, .btn-delete::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, .5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .btn-download:focus::after, .btn-delete:focus::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+
+        .file-list li {
+            padding: 6px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s ease;
+            min-height: 40px;
+        }
+
+        .file-list li:hover {
+            background-color: #f5f5f5;
+        }
+
+        .file-name {
+            flex: 1;
+            min-width: 0;
+            padding-right: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .file-name span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-size {
+            color: #757575;
+            font-size: 0.85rem;
+            margin-left: 4px;
+        }
+
+        /* Delete confirmation modal */
+        #deleteModal {
+            display: none; /* shown as flex when active */
+            position: fixed;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.35);
+            z-index: 1200;
+        }
+
+        #deleteModal .modal-box {
+            background: #fff;
+            border-radius: 10px;
+            padding: 18px;
+            width: 92%;
+            max-width: 420px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            text-align: left;
+        }
+
+        #deleteModal .modal-body {
+            margin: 8px 0 16px;
+            color: #222;
+            font-size: 0.98rem;
+        }
+
+        #deleteModal .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .modal-btn.cancel {
+            background: #f1f1f1;
+            color: #333;
+        }
+
+        .modal-btn.confirm {
+            background: #d32f2f;
+            color: white;
         }
     </style>
 
     <script>
-        function deleteFile(filename) {
-            if (confirm(`Tem certeza que deseja apagar ${filename}?`)) {
-                fetch(`/delete/${filename}/`, {
+        // Modal-based delete confirmation
+        let _deleteTarget = null;
+
+        function openDeleteModal(filename) {
+            _deleteTarget = filename;
+            const modal = document.getElementById('deleteModal');
+            modal.querySelector('.modal-body').textContent = `Tem certeza que deseja apagar "${filename}"?`;
+            modal.style.display = 'flex';
+            // focus the confirm button for accessibility
+            setTimeout(() => modal.querySelector('.confirm-delete').focus(), 10);
+        }
+
+        function closeDeleteModal() {
+            _deleteTarget = null;
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'none';
+        }
+
+        async function confirmDelete() {
+            if (!_deleteTarget) return closeDeleteModal();
+            const filename = _deleteTarget;
+            try {
+                const response = await fetch(`/delete/${filename}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                     }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        alert('Erro ao apagar o arquivo');
-                    }
-                })
-                .catch(() => alert('Erro ao apagar o arquivo'));
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Sucesso - recarrega a página
+                    closeDeleteModal();
+                    location.reload();
+                } else {
+                    closeDeleteModal();
+                    alert(data.error || 'Erro ao apagar o arquivo');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                closeDeleteModal();
+                alert('Erro ao apagar o arquivo. Verifique o console para mais detalhes.');
             }
         }
+
+        // close modal on ESC or click outside
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('deleteModal');
+            if (!modal) return;
+            if (e.key === 'Escape' && modal.style.display === 'flex') closeDeleteModal();
+        });
 
         function mostrarLoading() {
             document.querySelector(".loading").style.display = "flex";
@@ -328,6 +511,7 @@
             })();
         </script>
 
+        {% load static %}
         {% if message %}
             <div class="message {% if 'Erro' in message or '❌' in message %}error{% else %}success{% endif %}">
                 {{ message }}
@@ -340,14 +524,31 @@
             <ul>
                 {% for f in ficheiros %}
                     <li>
-                        <span>{{ f.nome }} <small>({{ f.tamanho }})</small></span>
+                        <div class="file-name">
+                            <span>📄 {{ f.nome }}</span>
+                            <small class="file-size">({{ f.tamanho }})</small>
+                        </div>
                         <div class="file-actions">
-                            <a href="{{ MEDIA_URL }}{{ f.nome }}" class="btn-download" download>📥 Download</a>
-                            <button onclick="deleteFile('{{ f.nome }}')" class="btn-delete">🗑️ Apagar</button>
+                            <a href="/media/{{ f.nome }}" class="btn-download" download="{{ f.nome }}" title="Download"><span>⬇️</span></a>
+                            <button onclick="openDeleteModal('{{ f.nome }}')" class="btn-delete" title="Apagar"><span>🗑️</span></button>
                         </div>
                     </li>
                 {% endfor %}
             </ul>
+        </div>
+        <!-- Delete confirmation modal -->
+        <div id="deleteModal" role="dialog" aria-modal="true" style="display:none;">
+            <div class="modal-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>Confirmar Apagar</strong>
+                    <button onclick="closeDeleteModal()" aria-label="Fechar" style="background:none;border:none;cursor:pointer;font-size:1.1rem;">✕</button>
+                </div>
+                <div class="modal-body">Tem certeza que deseja apagar o ficheiro?</div>
+                <div class="modal-actions">
+                    <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancelar</button>
+                    <button class="modal-btn confirm confirm-delete" onclick="confirmDelete()">Apagar</button>
+                </div>
+            </div>
         </div>
         {% endif %}
     </div>
