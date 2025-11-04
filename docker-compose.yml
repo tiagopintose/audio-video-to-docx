@@ -4,7 +4,7 @@ services:
   web:
     build: .
     container_name: transcritor_web
-    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn transcritor_site.wsgi:application --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-3} --timeout ${GUNICORN_TIMEOUT:-120}"
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn transcritor_site.wsgi:application --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-2} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-120} --worker-class=gthread"
     volumes:
       - ./media:/app/media
       - ./static:/app/static
@@ -12,4 +12,15 @@ services:
       - .env
     ports:
       - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MODEL_DEVICE=cpu
     restart: unless-stopped
