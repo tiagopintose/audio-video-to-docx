@@ -32,8 +32,8 @@ RUN mkdir -p /app/media /app/static
 # Dá permissões apropriadas
 RUN chmod -R 755 /app
 
-# Expõe porta 8000
-EXPOSE 8000
+# Expõe porta 8001
+EXPOSE 8001
 
 # Comando para iniciar o Gunicorn
-CMD ["gunicorn", "transcritor_site.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+CMD ["gunicorn", "transcritor_site.wsgi:application", "--bind", "0.0.0.0:8001", "--workers", "3", "--timeout", "120"]
