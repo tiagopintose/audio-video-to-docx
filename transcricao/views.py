@@ -10,7 +10,7 @@ import threading
 import time
 import json
 import uuid
-import moviepy.editor as mp
+# moviepy removed: prefer ffmpeg via utils._converter_para_wav for extraction
 
 def index(request):
     """
@@ -98,23 +98,14 @@ def start_transcribe(request):
         up_thread.start()
 
         try:
-            audio_path = None
-            # se vídeo, extrai áudio
-            if extension in [".mp4", ".mkv", ".avi", ".mov"]:
-                tf_audio = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-                audio_path = tf_audio.name
-                tf_audio.close()
-                video = mp.VideoFileClip(input_path)
-                try:
-                    video.audio.write_audiofile(audio_path, verbose=False, logger=None)
-                finally:
-                    video.close()
-                _write_progress(job_path, {"status": "processing", "percent": 10, "message": "Áudio extraído", "filename": None})
-                work_path = audio_path
-            else:
-                work_path = input_path
+            # Use ffmpeg-based conversion for all file types. The helper
+            # `transcrever_audio` already calls ffmpeg to convert input to WAV,
+            # so we can pass the original uploaded file directly. This avoids
+            # relying on moviepy (which can fail if ffmpeg isn't available to
+            # moviepy or has other issues).
+            work_path = input_path
 
-                    # chama a função de transcrição (bloqueante)
+            # chama a função de transcrição (bloqueante)
             try:
                 trans_msg = transcrever_audio(work_path)
                 _write_progress(job_path, {
