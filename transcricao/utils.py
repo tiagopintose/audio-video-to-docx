@@ -1,15 +1,14 @@
 import os
 import subprocess
 import tempfile
-import gc
 import whisper
 from docx import Document
 from django.conf import settings
 from datetime import datetime
 
 # Variáveis globais
-MODEL = None
 MODEL_DEVICE = os.getenv('MODEL_DEVICE', 'cpu')
+MODEL = whisper.load_model("medium", device=MODEL_DEVICE)  # Load once
 
 
 def _converter_para_wav(caminho_entrada: str) -> str:
@@ -34,25 +33,13 @@ def transcrever_audio(caminho_audio: str) -> str:
     Transcreve um ficheiro de áudio ou vídeo em português e
     guarda o resultado em 'MEDIA_ROOT/transcricao.docx'.
     """
-    global MODEL
     try:
-        # 🔹 Carregar modelo apenas quando necessário
-        if MODEL is None:
-            print("🔊 A carregar o modelo Whisper (large)... isto pode demorar um pouco.")
-            MODEL = whisper.load_model("large", device=MODEL_DEVICE)
-            print("✅ Modelo Whisper carregado com sucesso!")
-
         # 🔹 Converter o áudio/vídeo para WAV 16 kHz mono
         caminho_wav = _converter_para_wav(caminho_audio)
 
         # 🔹 Transcrever com o modelo (máxima precisão)
         resultado = MODEL.transcribe(caminho_wav, language="portuguese")
         transcricao = resultado["text"].strip()
-
-        # 🔹 Liberar memória após transcrição
-        MODEL = None
-        gc.collect()  # força garbage collection
-        print("🧹 Memória liberada")
 
         # 🔹 Garantir que MEDIA_ROOT existe
         os.makedirs(settings.MEDIA_ROOT, exist_ok=True)

@@ -65,6 +65,11 @@ def start_transcribe(request):
     uploaded = request.FILES["file"]
     ext = os.path.splitext(uploaded.name)[1].lower()
 
+    # Add size check (e.g., max 100MB)
+    max_size = 100 * 1024 * 1024  # 100MB
+    if uploaded.size > max_size:
+        return JsonResponse({"error": "Ficheiro demasiado grande (máx. 100MB)"}, status=400)
+
     job_id = uuid.uuid4().hex
     jobs_dir = os.path.join(tempfile.gettempdir(), "transcribe_jobs")
     os.makedirs(jobs_dir, exist_ok=True)
