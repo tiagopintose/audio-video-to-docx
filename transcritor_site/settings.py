@@ -28,7 +28,8 @@ SECRET_KEY = 'django-insecure-%s9ysmzdeuvqo8x^ar!*@qd8l+84jx1#i*8^yt6a%8$28fh&v+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', '1') == '1'  # Default to True em desenvolvimento
 
-ALLOWED_HOSTS = ['*']  # Permitir todos os hosts para desenvolvimento
+# Corrigir ALLOWED_HOSTS para aceitar qualquer host por padrão
+ALLOWED_HOSTS = ['*']  # Permite qualquer host; altere para lista específica em produção
 
 
 # Application definition
@@ -135,4 +136,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Configurações para produção
 DEBUG = os.getenv('DEBUG', '0') == '1'
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', SECRET_KEY)
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
